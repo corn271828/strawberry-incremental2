@@ -4,8 +4,7 @@ import { player } from './player.ts'
 
 <template>
   <div class="header">
-    <span> {{ player.strawberries }} </span>
-    <img src="./assets/strawb.png" alt="Strawberry" class="strawberry-icon" />
+    <span> {{ player.strawberries }} 🍓 </span>
   </div>
 </template>
 
@@ -16,7 +15,7 @@ import { player } from './player.ts'
   font-size: 1.5rem;
   font-weight: bold;
   border: 1px solid #ffffff;
-  background-color: #fe8787;
+  background-color: var(--rose-900);
   width: fit-content;
 }
 

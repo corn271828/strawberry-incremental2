@@ -2,8 +2,10 @@ import { ref, reactive } from 'vue'
 
 export const player = reactive({
   strawberries: 0,
-  upgradesUnlocked1: false,
-  strawbStorageUpgrades1: 0,
-  strawbRateUpgrades1: 0,
-  strawbCountPerPickUpgrades1: 0,
+  upgrades1: {
+    unlocked: false,
+    strawbStorage: 0,
+    strawbRate: 0,  
+    strawbCountPerPick: 0,
+  }
 })
