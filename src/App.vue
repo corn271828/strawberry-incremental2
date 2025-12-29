@@ -47,7 +47,7 @@ const upgradeStrawbSatiationCost2 = 80
 <template>
   <div class="app-container bg-pink-900 bg">
     <Header></Header>
-    <dialog open>
+    <dialog v-if="!player.initDialogSeen" open>
       <p>
         You wake up in an abandoned field, the sun beating down on your back. As you rub your eyes,
         you realize with a start that you have no memory of who you are or how you got here. As you
@@ -62,7 +62,7 @@ const upgradeStrawbSatiationCost2 = 80
       </p>
 
       <form method="dialog">
-        <button>Continue</button>
+        <button @click="() => {player.initDialogSeen = true}">Continue</button>
       </form>
     </dialog>
     <div class="upgrades-container">

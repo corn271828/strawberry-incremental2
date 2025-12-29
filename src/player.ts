@@ -1,7 +1,8 @@
-import { ref, reactive, computed } from 'vue'
+import { reactive, computed } from 'vue'
 
 export const player = reactive({
   strawberries: 0,
+  initDialogSeen : false,
   upgrades1: {
     unlocked: false,
     strawbStorage: 0,
