@@ -39,34 +39,32 @@ const progressBarStyle = computed(() => {
   return {
     'transition-duration': props.intervalMillis + 'ms',
     'transition-timing-function': isInProgress.value ? 'linear' : 'steps(1, jump-start)',
-    'width':  isInProgress.value ?'100%' : '0%',
-    'height': '20px',
+    width: isInProgress.value ? '100%' : '0%',
+    height: '20px',
     'background-color': 'var(--pink)',
   }
 })
-
 </script>
 
 <template>
   <button @click="onClick" :disabled="isInProgress || !props.enabled">
     <h3 style="font-weight: bold">{{ props.buttonText }}</h3>
-     <p>{{ props.buttonSubtext }}</p> 
-    <div class="progress"  style="width:100%">
+    <p>{{ props.buttonSubtext }}</p>
+    <div class="progress" style="width: 100%">
       <div class="bar" :style="progressBarStyle"></div>
     </div>
   </button>
 </template>
 
-<style >
+<style>
 button {
-  width:100%;
+  width: 100%;
   background-color: var(--black-soft);
-  min-height:60px;
+  min-height: 60px;
   margin: 5px;
 
- &:disabled {
+  &:disabled {
     background-color: var(--black);
   }
 }
-
 </style>

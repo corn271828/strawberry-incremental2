@@ -1,13 +1,13 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --black: #121212;
-  --black-soft:#222222;
+  --black-soft: #222222;
   --rose-980: oklch(10% 0.105 12.094);
   --rose-950: oklch(27.1% 0.105 12.094);
   --dark-purple: #150050;
-  --purple : #3F0071;
-  --pink: #FB2576;
-  --white-soft: #F8F8F8;
+  --purple: #3f0071;
+  --pink: #fb2576;
+  --white-soft: #f8f8f8;
 }
 
 /* semantic color variables for this project */
@@ -33,7 +33,10 @@
   font-weight: normal;
 }
 
-body, button {
+/* base typography styles */
+body,
+button,
+dialog {
   color: var(--color-text);
   /* transition:
     color 0.1s,
@@ -61,4 +64,10 @@ body, button {
 body {
   min-height: 100vh;
   background: var(--color-background);
+}
+
+dialog {
+  background: var(--color-background);
+  width: 80%;
+  margin: auto;
 }
