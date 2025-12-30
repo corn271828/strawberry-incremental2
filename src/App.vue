@@ -1,46 +1,23 @@
 <script setup lang="ts">
-import { player , strawbsMax } from './player.ts'
+import { player, strawbsMax } from './player.ts'
 import Button_with_waiting from './Button_with_waiting.vue'
 import Header from './Header.vue'
-import { computed } from 'vue'
+import { computed , useTemplateRef} from 'vue'
 
-import { useTemplateRef } from 'vue'
+import Upgrade_Button from './Upgrade_Button.vue'
 
 const upgrades1Dialog = useTemplateRef('upgrades1Dialog')
 const upgrades2Dialog = useTemplateRef('upgrades2Dialog')
 
-const canPick = computed (()  => {
+const canPick = computed(() => {
   return player.strawberries < strawbsMax.value
 })
-const strawbsPerPick = computed(() => 1 + player.upgrades1.strawbCountPerPick
-+ 3 * player.upgrades2.strawbCountPerPick
+const strawbsPerPick = computed(
+  () => 1 + player.upgrades1.strawbCountPerPick + 2 * player.upgrades2.strawbCountPerPick,
 )
 function pick() {
   player.strawberries = Math.min(player.strawberries + strawbsPerPick.value, strawbsMax.value)
 }
-
-const speedupForTesting = 1 // change to speed up for testing
-
-const maxCountPerPickUpgrades1 = 5
-const upgradeCountPerPickCost1 = computed(() => 5 + 2 * player.upgrades1.strawbCountPerPick
-)
-
-const maxStrawbStorageUpgrades1 = 2
-const upgradeStrawbStorageCost1 = computed(() => 5 + 5 * player.upgrades1.strawbStorage)
-
-const unlockUpgrades2Cost = 30
-
-const maxCountPerPickUpgrades2 = 5
-const upgradeCountPerPickCost2 = computed(() => 15 + 10 * player.upgrades2.strawbCountPerPick)
-
-const maxStrawbStorageUpgrades2 = 2
-const upgradeStrawbStorageCost2 = computed(() => 10 + 15 * player.upgrades2.strawbStorage)
-
-const maxStrawbRateUpgrades2 = 2
-const upgradeStrawbRateCost2 = computed(() => 20 + 20 * player.upgrades2.strawbRate)
-
-const maxStrawbSatiation2 = 3
-const upgradeStrawbSatiationCost2 = 80
 
 </script>
 
@@ -62,7 +39,15 @@ const upgradeStrawbSatiationCost2 = 80
       </p>
 
       <form method="dialog">
-        <button @click="() => {player.initDialogSeen = true}">Continue</button>
+        <button
+          @click="
+            () => {
+              player.initDialogSeen = true
+            }
+          "
+        >
+          Continue
+        </button>
       </form>
     </dialog>
     <div class="upgrades-container">
@@ -70,200 +55,137 @@ const upgradeStrawbSatiationCost2 = 80
         :buttonText="`Pick Strawb (+${strawbsPerPick} 🍓)`"
         buttonSubtext="Nab a ripe and juicy strawberry right off the bush!"
         :enabled="canPick"
-        :intervalMillis="2000 / (1 + player.upgrades2.strawbRate * 0.25) / speedupForTesting"
+        :intervalMillis="2000 / (1 + player.upgrades2.strawbRate * 0.25) "
         :onFinish="pick"
       />
-      <Button_with_waiting
-        v-if="!player.upgrades1.unlocked"
-        :buttonText="`Eat Strawbs - Cost: 5 🍓`"
+      <Upgrade_Button
+        :showCondition=true
+        :cost=5
+        :currentUpgrade="player.upgrades1.unlocked ? 1 : 0"
+        :maxUpgrades=1
+        buttonTitle="Eat Strawbs"
         buttonSubtext="Eat some delicious strawberries to recover some energy!"
-        :intervalMillis="2000 / speedupForTesting"
-        :enabled="player.strawberries >= 5"
-        :onStart="
-          function () {
-            player.strawberries -= 5
-          }
-        "
-        :onFinish="
-          function () {
-            player.upgrades1.unlocked = true;
-            upgrades1Dialog?.showModal();
-          }
-        "
+        :intervalSecs=2
+        :onStart=undefined
+        :performUpgrade="() => {
+          player.upgrades1.unlocked = true
+          upgrades1Dialog?.showModal()
+        }"
       />
-    <dialog ref="upgrades1Dialog">
-      <p>
-        As you consume the strawberries, a warmth spreads through your body, easing the pain from
-        your injury. You feel a renewed sense of strength and clarity, as if the fruit has unlocked
-        something within you.  
-      </p>
+      <dialog ref="upgrades1Dialog">
+        <p>
+          As you consume the strawberries, a warmth spreads through your body, easing the pain from
+          your injury. You feel a renewed sense of strength and clarity, as if the fruit has
+          unlocked something within you.
+        </p>
 
-      <p>
-        Still, you are aware of the dangers that could lurk in this abandoned field. 
-        You need to fix your injury and gather more resources if you hope to survive.
-      </p>
+        <p>
+          Still, you are aware of the dangers that could lurk in this abandoned field. You need to
+          fix your injury and gather more resources if you hope to survive.
+        </p>
 
-      <form method="dialog">
-        <button>Continue</button>
-      </form>
-    </dialog>
-    <div v-if="player.upgrades1.unlocked" class="upgrades1-container">
-      <Button_with_waiting
-        v-if="
-          player.upgrades1.strawbCountPerPick < maxCountPerPickUpgrades1
-        "
-        :buttonText="`Practice Dexterity (Level ${player.upgrades1.strawbCountPerPick} / ${maxCountPerPickUpgrades1}) - Cost: ${upgradeCountPerPickCost1} 🍓`"
+        <form method="dialog">
+          <button>Continue</button>
+        </form>
+      </dialog>
+      <Upgrade_Button
+        :showCondition=player.upgrades1.unlocked
+        :cost="5 + 2 * player.upgrades1.strawbCountPerPick"
+        :currentUpgrade=player.upgrades1.strawbCountPerPick
+        :maxUpgrades=5
+        buttonTitle="Practice Dexterity"
         buttonSubtext="Practice your picking skills to gather more strawberries each time!"
-        :intervalMillis="2000 / speedupForTesting"
-        :enabled="
-    player.upgrades1.strawbCountPerPick < maxCountPerPickUpgrades1 &&
-    player.strawberries >= upgradeCountPerPickCost1"
-        :onStart="
-          function () {
-            player.strawberries -= upgradeCountPerPickCost1
-          }
-        "
-        :onFinish=" () => {if (player.upgrades1.strawbCountPerPick >= maxCountPerPickUpgrades1) return
-  player.upgrades1.strawbCountPerPick++}"
+        :intervalSecs=2
+        :onStart=undefined
+        :performUpgrade="() => {player.upgrades1.strawbCountPerPick++}"
       />
-      <Button_with_waiting
-        v-if="
-          player.upgrades1.strawbStorage < maxStrawbStorageUpgrades1
-        "
-        :buttonText="`Dig a hole (Level ${player.upgrades1.strawbStorage} / ${maxStrawbStorageUpgrades1}) - Cost: ${upgradeStrawbStorageCost1} 🍓`"
+      <Upgrade_Button
+        :showCondition=player.upgrades1.unlocked
+        :cost="5 + 5 * player.upgrades1.strawbStorage"
+        :currentUpgrade=player.upgrades1.strawbStorage
+        :maxUpgrades=2
+        buttonTitle="Dig a hole"
         buttonSubtext="Increase your strawberry storage capacity by digging a hole to stash more!"
-        :intervalMillis="2000 / speedupForTesting"
-        :enabled="
-    player.upgrades1.strawbStorage < maxStrawbStorageUpgrades1 &&
-    player.strawberries >= upgradeStrawbStorageCost1"
-        :onStart="
-          function () {
-            player.strawberries -= upgradeStrawbStorageCost1
-          }
-        "
-        :onFinish="() =>  {if (player.upgrades1.strawbStorage >= maxStrawbStorageUpgrades1) return
-  player.upgrades1.strawbStorage++}"
+        :intervalSecs=2
+        :onStart=undefined
+        :performUpgrade="() => {player.upgrades1.strawbStorage++}"
       />
-      <Button_with_waiting
-        v-if="!player.upgrades2.unlocked"
-        :buttonText="`First Aid  - Cost: ${unlockUpgrades2Cost} 🍓`"
+      <Upgrade_Button
+        :showCondition=player.upgrades1.unlocked
+        :cost=30
+        :currentUpgrade="player.upgrades2.unlocked ? 1 : 0"
+        :maxUpgrades=1
+        buttonTitle="First Aid"
         buttonSubtext="Apply a makeshift strawberry poultice to your wound to stop the bleeding!"
-        :intervalMillis="2000 / speedupForTesting"
-        :enabled="player.strawberries >= unlockUpgrades2Cost"
-        :onStart="
-          function () {
-            player.strawberries -= unlockUpgrades2Cost
-          }
-        "
-        :onFinish="
-          function () {
-            player.upgrades2.unlocked = true;
-            upgrades2Dialog?.showModal();
-          }
-        "
+        :intervalSecs=5
+        :onStart=undefined
+        :performUpgrade="() => {
+          player.upgrades2.unlocked = true
+          upgrades2Dialog?.showModal()
+        }"
+      />
+      <dialog ref="upgrades2Dialog">
+        <p>
+          The poultice made from crushed strawberries works wonders on your wound. The bleeding
+          stops, and the pain subsides to a dull ache. With your injury tended to, you can now focus
+          on gathering resources and preparing for the challenges ahead.
+        </p>
+
+        <p>
+          Your next order of business is to build a shelter. Thankfully, there's some nearby
+          brushwood that you can use. But you're going to need a lot of energy to do it!
+        </p>
+
+        <form method="dialog">
+          <button>Continue</button>
+        </form>
+      </dialog>
+      <Upgrade_Button
+        :showCondition=player.upgrades2.unlocked
+        :cost="15 + 10 * player.upgrades2.strawbCountPerPick"
+        :currentUpgrade=player.upgrades2.strawbCountPerPick
+        :maxUpgrades=5
+        buttonTitle="Engage Multitasking"
+        buttonSubtext="Make full use of all your limbs to pick more strawberries!"
+        :intervalSecs=3
+        :onStart=undefined
+        :performUpgrade="() => {player.upgrades2.strawbCountPerPick++}"
+      />
+      <Upgrade_Button
+        :showCondition=player.upgrades2.unlocked
+        :cost="10 + 15 * player.upgrades2.strawbStorage"
+        :currentUpgrade=player.upgrades2.strawbStorage
+        :maxUpgrades=2
+        buttonTitle="Build Strawberry Storage"
+        buttonSubtext="Build a small storage shed to store your strawberries! (It's made of strawberries, so it attracts birds...)"
+        :intervalSecs=3
+        :onStart=undefined
+        :performUpgrade="() => {player.upgrades2.strawbStorage++}"
+      />
+
+      <Upgrade_Button
+        :showCondition=player.upgrades2.unlocked
+        :cost="20 + 20 * player.upgrades2.strawbRate"
+        :currentUpgrade=player.upgrades2.strawbRate
+        :maxUpgrades=2
+        buttonTitle="Optimize Picking Rhythm"
+        buttonSubtext="Find the perfect rhythm to pick strawberries faster!"
+        :intervalSecs=3
+        :onStart=undefined
+        :performUpgrade="() => {player.upgrades2.strawbRate++}"
+      />
+      <Upgrade_Button
+        :showCondition=player.upgrades2.unlocked
+        :cost="80"
+        :currentUpgrade=player.upgrades2.strawbSatiation
+        :maxUpgrades=2
+        buttonTitle="Devour Strawbs"
+        buttonSubtext="Satiate your hunger to regain your energy!"
+        :intervalSecs=5
+        :onStart=undefined
+        :performUpgrade="() => {player.upgrades2.strawbSatiation++}"
       />
     </div>
-    <dialog ref="upgrades2Dialog">
-      <p>
-        The poultice made from crushed strawberries works wonders on your wound. 
-        The bleeding stops, and the pain subsides to a dull ache.
-        With your injury tended to, you can now focus on gathering resources and preparing for the challenges ahead.
-      </p>
-
-      <p>
-        Your next order of business is to build a shelter. Thankfully, 
-        there's some nearby brushwood that you can use. But you're 
-       going to need a lot of energy to do it!
-      </p>
-
-      <form method="dialog">
-        <button>Continue</button>
-      </form>
-    </dialog>
-    <div v-if="player.upgrades2.unlocked" class="upgrades2-container">
-
-      <Button_with_waiting
-        v-if="
-          player.upgrades2.strawbCountPerPick < maxCountPerPickUpgrades2
-        "
-        :buttonText="`Engage Multitasking (Level ${player.upgrades2.strawbCountPerPick} / ${maxCountPerPickUpgrades2}) - Cost: ${upgradeCountPerPickCost2} 🍓`"
-        buttonSubtext="Make full use of all your limbs to pick more strawberries!"
-        :intervalMillis="3000 / speedupForTesting"
-        :enabled="
-    player.upgrades2.strawbCountPerPick < maxCountPerPickUpgrades2 &&
-    player.strawberries >= upgradeCountPerPickCost2"
-        :onStart="
-          function () {
-            player.strawberries -= upgradeCountPerPickCost2
-          }
-        "
-        :onFinish=" () => 
-{  if (player.upgrades2.strawbCountPerPick >= maxCountPerPickUpgrades2) return
-  player.upgrades2.strawbCountPerPick++}"
-      />
-      <Button_with_waiting
-        v-if="
-          player.upgrades2.strawbStorage < maxStrawbStorageUpgrades2
-        "
-        :buttonText="`Build Strawberry Storage (Level ${player.upgrades2.strawbStorage} / ${maxStrawbStorageUpgrades2}) - Cost: ${upgradeStrawbStorageCost2} 🍓`"
-        buttonSubtext="Build a small storage shed to store your strawberries! (It's made of strawberries, so it attracts birds...)"
-        :intervalMillis="3000 / speedupForTesting"
-        :enabled="
-    player.upgrades2.strawbStorage < maxStrawbStorageUpgrades2 &&
-    player.strawberries >= upgradeStrawbStorageCost2"
-        :onStart="
-          function () {
-            player.strawberries -= upgradeStrawbStorageCost2
-          }
-        "
-        :onFinish="
-        () => 
-  {if (player.upgrades2.strawbStorage >= maxStrawbStorageUpgrades2) return
-  player.upgrades2.strawbStorage++}"
-        ></Button_with_waiting>
-
-
-    <Button_with_waiting
-        v-if="
-          player.upgrades2.strawbRate < maxStrawbRateUpgrades2
-        "
-        :buttonText="`Optimize Picking Rhythm (Level ${player.upgrades2.strawbRate} / ${maxStrawbRateUpgrades2}) - Cost: ${upgradeStrawbRateCost2} 🍓`"
-        buttonSubtext="Find the perfect rhythm to pick strawberries faster!"
-        :intervalMillis="3000 / speedupForTesting"
-        :enabled="player.upgrades2.strawbRate < maxStrawbRateUpgrades2 && player.strawberries >= upgradeStrawbRateCost2"
-       :onStart="
-          function () {
-            player.strawberries -= upgradeStrawbRateCost2
-          }
-        "
-        :onFinish="
-        () => {if (player.upgrades2.strawbRate >= maxStrawbRateUpgrades2) return
-          ; 
-          player.upgrades2.strawbRate++
-        }"
-></Button_with_waiting>
-      <Button_with_waiting
-        v-if="player.upgrades2.strawbSatiation < maxStrawbSatiation2"
-        :buttonText="`Devour Strawbs (Level ${player.upgrades2.strawbSatiation} / ${maxStrawbSatiation2}) - Cost: ${upgradeStrawbSatiationCost2} 🍓`"
-        buttonSubtext="Satiate your hunger to regain your energy."
-        :intervalMillis="5000 / speedupForTesting"
-        :enabled="player.strawberries >= upgradeStrawbSatiationCost2"
-        :onStart="
-          function () {
-            player.strawberries -= upgradeStrawbSatiationCost2
-          }
-        "
-        :onFinish="
-          function () {
-          player.upgrades2.strawbSatiation++;
-          if (player.upgrades2.strawbSatiation >= maxStrawbSatiation2) 
-          player.upgrades3.unlocked = true;
-          }
-        "
-      />
-</div>
-
-  </div>
   </div>
 </template>
 

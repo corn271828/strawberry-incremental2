@@ -23,6 +23,8 @@ const props = defineProps({
   },
 })
 
+const speedupForTesting = 10 // change to speed up for testing
+
 const isInProgress = ref(false)
 const lastClicked = ref(0)
 function onClick() {
@@ -32,12 +34,12 @@ function onClick() {
   setTimeout(() => {
     isInProgress.value = false
     props.onFinish()
-  }, props.intervalMillis)
+  }, props.intervalMillis / speedupForTesting)
 }
 
 const progressBarStyle = computed(() => {
   return {
-    'transition-duration': props.intervalMillis + 'ms',
+    'transition-duration': props.intervalMillis / speedupForTesting + 'ms',
     'transition-timing-function': isInProgress.value ? 'linear' : 'steps(1, jump-start)',
     width: isInProgress.value ? '100%' : '0%',
     height: '20px',

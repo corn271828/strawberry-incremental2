@@ -2,7 +2,7 @@ import { reactive, computed } from 'vue'
 
 export const player = reactive({
   strawberries: 0,
-  initDialogSeen : false,
+  initDialogSeen: false,
   upgrades1: {
     unlocked: false,
     strawbStorage: 0,
@@ -16,8 +16,10 @@ export const player = reactive({
     strawbSatiation: 0,
   },
   upgrades3: {
-    unlocked: false
-  }
+    unlocked: false,
+  },
 })
 
-export const strawbsMax = computed (() => 10 + player.upgrades1.strawbStorage * 10 + player.upgrades2.strawbStorage * 25 )
+export const strawbsMax = computed(
+  () => 10 + player.upgrades1.strawbStorage * 10 + player.upgrades2.strawbStorage * 25,
+)
