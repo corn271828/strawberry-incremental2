@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { player } from './player'
+import { Resource, getResource, addResource } from './player'
 
 const props = defineProps<{
   showCondition: boolean
+  resource: Resource
   cost: number
   currentUpgrade: number
   maxUpgrades: number
@@ -15,9 +16,10 @@ const props = defineProps<{
 }>()
 
 const buttonText = computed(() => {
-  const levelsDisplay = props.maxUpgrades === 0 ? '' : ` (${props.currentUpgrade} / ${props.maxUpgrades})`
+  const levelsDisplay =
+    props.maxUpgrades === 0 ? '' : ` (${props.currentUpgrade} / ${props.maxUpgrades})`
 
-  return `${props.buttonTitle}${levelsDisplay} - Cost: ${props.cost} 🍓`
+  return `${props.buttonTitle}${levelsDisplay} - Cost: ${props.cost} ${props.resource}`
 })
 </script>
 
@@ -27,12 +29,10 @@ const buttonText = computed(() => {
     :buttonText="buttonText"
     :buttonSubtext="props.buttonSubtext"
     :intervalMillis="1000 * props.intervalSecs"
-    :enabled="
-      props.currentUpgrade < props.maxUpgrades && player.strawberries >= props.cost
-    "
+    :enabled="props.currentUpgrade < props.maxUpgrades && getResource(props.resource) >= props.cost"
     :onStart="
       function () {
-        player.strawberries -= props.cost;
+        addResource(resource, -props.cost)
         props.onStart?.()
       }
     "
