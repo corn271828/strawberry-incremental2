@@ -8,12 +8,17 @@ import Upgrade_Button from './Upgrade_Button.vue'
 
 const upgrades1Dialog = useTemplateRef('upgrades1Dialog')
 const upgrades2Dialog = useTemplateRef('upgrades2Dialog')
+const upgrades3Dialog = useTemplateRef('upgrades3Dialog')
 
 const canPick = computed(() => {
   return player.strawberries < maxResource(Resource.STRAWBERRY)
 })
 const strawbsPerPick = computed(
-  () => 1 + player.upgrades1.strawbCountPerPick + 2 * player.upgrades2.strawbCountPerPick,
+  () =>
+    1 +
+    player.upgrades1.strawbCountPerPick +
+    2 * player.upgrades2.strawbCountPerPick +
+    4 * player.upgrades3.strawbCountPerPick,
 )
 function pick() {
   player.strawberries = Math.min(
@@ -21,11 +26,20 @@ function pick() {
     maxResource(Resource.STRAWBERRY),
   )
 }
+function enableAutoPick() {
+  setInterval(() => {
+    if (canPick.value) {
+      pick()
+    }
+  }, 1000)
+}
 
 const canChop = computed(() => {
   return player.wood < maxResource(Resource.WOOD)
 })
-const woodPerChop = computed(() => 1)
+
+const woodPerChop = computed(() => 1 + player.upgrades3.woodCountPerChop)
+
 function chop() {
   player.wood = Math.min(player.wood + woodPerChop.value, maxResource(Resource.WOOD))
 }
@@ -62,16 +76,16 @@ function chop() {
     </dialog>
     <div class="upgrades-container">
       <Button_with_waiting
+        ref="pickStrawbButton"
         :buttonText="`Pick Strawb (+${strawbsPerPick} ${Resource.STRAWBERRY})`"
         buttonSubtext="Nab ripe and juicy strawberries right off the bush!"
         :enabled="canPick"
-        :intervalMillis="2000 / (1 + player.upgrades2.strawbRate * 0.25)"
+        :intervalMillis="1500 / (1 + player.upgrades2.strawbRate * 0.25)"
         :onFinish="pick"
       />
       <Upgrade_Button
         :showCondition="true"
-        :resource="Resource.STRAWBERRY"
-        :cost="5"
+        :resource="[[Resource.STRAWBERRY, 5]]"
         :currentUpgrade="player.upgrades1.unlocked ? 1 : 0"
         :maxUpgrades="1"
         buttonTitle="Eat Strawbs"
@@ -103,8 +117,7 @@ function chop() {
       </dialog>
       <Upgrade_Button
         :showCondition="player.upgrades1.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="5 + 2 * player.upgrades1.strawbCountPerPick"
+        :resource="[[Resource.STRAWBERRY, 5 + 2 * player.upgrades1.strawbCountPerPick]]"
         :currentUpgrade="player.upgrades1.strawbCountPerPick"
         :maxUpgrades="5"
         buttonTitle="Practice Dexterity"
@@ -119,8 +132,7 @@ function chop() {
       />
       <Upgrade_Button
         :showCondition="player.upgrades1.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="5 + 5 * player.upgrades1.strawbStorage"
+        :resource="[[Resource.STRAWBERRY, 5 + 5 * player.upgrades1.strawbStorage]]"
         :currentUpgrade="player.upgrades1.strawbStorage"
         :maxUpgrades="2"
         buttonTitle="Dig a hole"
@@ -135,8 +147,7 @@ function chop() {
       />
       <Upgrade_Button
         :showCondition="player.upgrades1.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="30"
+        :resource="[[Resource.STRAWBERRY, 30]]"
         :currentUpgrade="player.upgrades2.unlocked ? 1 : 0"
         :maxUpgrades="1"
         buttonTitle="First Aid"
@@ -158,8 +169,8 @@ function chop() {
         </p>
 
         <p>
-          Your next order of business is to build a shelter. Thankfully, there's some nearby
-          brushwood that you can use. But you're going to need a lot of energy to do it!
+          Your hunger is still sapping your energy though, so you should probably eat some more
+          strawbs first.
         </p>
 
         <form method="dialog">
@@ -168,8 +179,7 @@ function chop() {
       </dialog>
       <Upgrade_Button
         :showCondition="player.upgrades2.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="15 + 10 * player.upgrades2.strawbCountPerPick"
+        :resource="[[Resource.STRAWBERRY, 15 + 10 * player.upgrades2.strawbCountPerPick]]"
         :currentUpgrade="player.upgrades2.strawbCountPerPick"
         :maxUpgrades="5"
         buttonTitle="Engage Multitasking"
@@ -184,8 +194,7 @@ function chop() {
       />
       <Upgrade_Button
         :showCondition="player.upgrades2.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="10 + 15 * player.upgrades2.strawbStorage"
+        :resource="[[Resource.STRAWBERRY, 10 + 15 * player.upgrades2.strawbStorage]]"
         :currentUpgrade="player.upgrades2.strawbStorage"
         :maxUpgrades="2"
         buttonTitle="Build Strawberry Storage"
@@ -200,8 +209,7 @@ function chop() {
       />
       <Upgrade_Button
         :showCondition="player.upgrades2.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="20 + 20 * player.upgrades2.strawbRate"
+        :resource="[[Resource.STRAWBERRY, 20 + 20 * player.upgrades2.strawbRate]]"
         :currentUpgrade="player.upgrades2.strawbRate"
         :maxUpgrades="2"
         buttonTitle="Optimize Picking Rhythm"
@@ -216,8 +224,7 @@ function chop() {
       />
       <Upgrade_Button
         :showCondition="player.upgrades2.unlocked"
-        :resource="Resource.STRAWBERRY"
-        :cost="80"
+        :resource="[[Resource.STRAWBERRY, 80]]"
         :currentUpgrade="player.upgrades2.strawbSatiation"
         :maxUpgrades="2"
         buttonTitle="Devour Strawbs"
@@ -227,17 +234,127 @@ function chop() {
         :performUpgrade="
           () => {
             player.upgrades2.strawbSatiation++
-            if (player.upgrades2.strawbSatiation >= 2) player.upgrades3.unlocked = true
+            if (player.upgrades2.strawbSatiation >= 2) {
+              player.upgrades3.unlocked = true
+              upgrades3Dialog?.showModal()
+            }
           }
         "
       />
-      <Button_with_waiting
-        v-if="player.upgrades3.unlocked"
-        :buttonText="`Gather wood (+${woodPerChop} ${Resource.WOOD})`"
-        buttonSubtext="Chop some nearby brushwood to gather fine, dry wood!"
-        :enabled="canChop"
-        :intervalMillis="3000"
-        :onFinish="chop"
+      <dialog ref="upgrades3Dialog">
+        <p>
+          With your hunger finally sated, you feel a surge of vitality coursing through your veins.
+          The world around you seems sharper, more vibrant. (Or something. Github Copilot helped
+          write this, if you couldn't tell. )
+        </p>
+
+        <p>
+          In any case, your next order of business is to build a shelter, lest the coming night
+          catch you unprepared. Thankfully, there's plenty of brushwood around to help you get
+          started!
+        </p>
+        <form method="dialog">
+          <button>Continue</button>
+        </form>
+      </dialog>
+      <Upgrade_Button
+        :additionalDisableCondition="!canChop"
+        :showCondition="player.upgrades3.unlocked"
+        :resource="[[Resource.STRAWBERRY, 20]]"
+        :currentUpgrade="0"
+        :maxUpgrades="undefined"
+        :buttonTitle="`Gather wood (+${woodPerChop} ${Resource.WOOD})`"
+        buttonSubtext="Chop some nearby brushwood to gather fine, dry wood! Requires some energy."
+        :intervalSecs="3"
+        :onStart="undefined"
+        :performUpgrade="chop"
+      />
+      <Upgrade_Button
+        :showCondition="player.upgrades3.unlocked"
+        :resource="[
+          [Resource.STRAWBERRY, 40 + 30 * player.upgrades3.strawbCountPerPick],
+          [Resource.WOOD, 16 + 6 * player.upgrades3.strawbCountPerPick],
+        ]"
+        :currentUpgrade="player.upgrades3.strawbCountPerPick"
+        :maxUpgrades="5"
+        buttonTitle="Wooden multi-arms"
+        buttonSubtext="Craft extra wooden arms to help you pick even more strawberries!"
+        :intervalSecs="5"
+        :onStart="undefined"
+        :performUpgrade="
+          () => {
+            player.upgrades3.strawbCountPerPick++
+          }
+        "
+      />
+      <Upgrade_Button
+        :showCondition="player.upgrades3.unlocked"
+        :resource="[
+          [Resource.STRAWBERRY, 60 + 40 * player.upgrades3.storage],
+          [Resource.WOOD, 10 + 5 * player.upgrades3.storage],
+        ]"
+        :currentUpgrade="player.upgrades3.storage"
+        :maxUpgrades="3"
+        buttonTitle="Storage shed"
+        buttonSubtext="Upgrade your shed to store more strawberries and wood! Also makes it bird-proof"
+        :intervalSecs="5"
+        :onStart="undefined"
+        :performUpgrade="
+          () => {
+            player.upgrades3.storage++
+          }
+        "
+      />
+      <Upgrade_Button
+        :showCondition="player.upgrades3.unlocked"
+        :resource="[
+          [Resource.STRAWBERRY, 80 + 40 * player.upgrades3.woodCountPerChop],
+          [Resource.WOOD, 4 + 4 * player.upgrades3.woodCountPerChop],
+        ]"
+        :currentUpgrade="player.upgrades3.woodCountPerChop"
+        :maxUpgrades="5"
+        buttonTitle="Strawberry Axe"
+        buttonSubtext="Craft an axe out of strawberries to chop more wood per chop!"
+        :intervalSecs="5"
+        :onStart="undefined"
+        :performUpgrade="
+          () => {
+            player.upgrades3.woodCountPerChop++
+          }
+        "
+      />
+      <Upgrade_Button
+        :showCondition="player.upgrades3.unlocked"
+        :resource="[
+          [Resource.STRAWBERRY, 260],
+          [Resource.WOOD, 40],
+        ]"
+        :currentUpgrade="player.upgrades3.autoStrawbPicker ? 1 : 0"
+        :maxUpgrades="1"
+        buttonTitle="Auto Strawb Picker"
+        buttonSubtext="Build a contraption that automatically picks strawberries for you!"
+        :intervalSecs="5"
+        :onStart="undefined"
+        :performUpgrade="
+          () => {
+            player.upgrades3.autoStrawbPicker = true
+            enableAutoPick()
+          }
+        "
+      />
+      <Upgrade_Button
+        :showCondition="player.upgrades3.unlocked"
+        :resource="[
+          [Resource.STRAWBERRY, 260],
+          [Resource.WOOD, 40],
+        ]"
+        :currentUpgrade="player.upgrades3.shelter"
+        :maxUpgrades="3"
+        buttonTitle="Construct Shelter"
+        buttonSubtext="Build your shelter to survive the night! It may only be made of sticks and strawberries, but it's better than nothing."
+        :intervalSecs="10"
+        :onStart="undefined"
+        :performUpgrade="() => {}"
       />
     </div>
   </div>

@@ -4,10 +4,10 @@ import { Resource, getResource, addResource } from './player'
 
 const props = defineProps<{
   showCondition: boolean
-  resource: Resource
-  cost: number
+  additionalDisableCondition?: boolean // set to true to disable the button
+  resource: Array<[Resource, number]>
   currentUpgrade: number
-  maxUpgrades: number
+  maxUpgrades?: number
   buttonTitle: string
   buttonSubtext: string
   intervalSecs: number
@@ -17,28 +17,40 @@ const props = defineProps<{
 
 const buttonText = computed(() => {
   const levelsDisplay =
-    props.maxUpgrades === 0 ? '' : ` (${props.currentUpgrade} / ${props.maxUpgrades})`
+    props.maxUpgrades === undefined ? '' : ` (${props.currentUpgrade} / ${props.maxUpgrades})`
 
-  return `${props.buttonTitle}${levelsDisplay} - Cost: ${props.cost} ${props.resource}`
+  const costDisplay = props.resource.map(([resource, cost]) => `${cost} ${resource}`).join(', ')
+
+  return `${props.buttonTitle}${levelsDisplay} - Cost: ${costDisplay}`
+})
+
+const enoughResources = computed(() => {
+  return props.resource.every(([resource, cost]) => getResource(resource) >= cost)
+})
+
+const notAtMaxUpgrades = computed(() => {
+  return props.maxUpgrades === undefined || props.currentUpgrade < props.maxUpgrades
 })
 </script>
 
 <template>
   <Button_with_waiting
-    v-if="props.showCondition && props.currentUpgrade < props.maxUpgrades"
+    v-if="props.showCondition && notAtMaxUpgrades"
     :buttonText="buttonText"
     :buttonSubtext="props.buttonSubtext"
     :intervalMillis="1000 * props.intervalSecs"
-    :enabled="props.currentUpgrade < props.maxUpgrades && getResource(props.resource) >= props.cost"
+    :enabled="notAtMaxUpgrades && enoughResources && !props.additionalDisableCondition"
     :onStart="
       function () {
-        addResource(resource, -props.cost)
+        for (const [resource, cost] of props.resource) {
+          addResource(resource, -cost)
+        }
         props.onStart?.()
       }
     "
     :onFinish="
       () => {
-        if (props.currentUpgrade >= props.maxUpgrades) return
+        if (!notAtMaxUpgrades) return
         props.performUpgrade()
       }
     "

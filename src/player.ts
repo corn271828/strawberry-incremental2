@@ -6,19 +6,24 @@ export const player = reactive({
   stone: 0,
   initDialogSeen: false,
   upgrades1: {
-    unlocked: false,
-    strawbStorage: 0,
-    strawbCountPerPick: 0,
+    unlocked: true,
+    strawbStorage: 2,
+    strawbCountPerPick: 5,
   },
   upgrades2: {
-    unlocked: false,
-    strawbRate: 0,
-    strawbStorage: 0,
-    strawbCountPerPick: 0,
-    strawbSatiation: 0,
+    unlocked: true,
+    strawbRate: 2,
+    strawbStorage: 2,
+    strawbCountPerPick: 5,
+    strawbSatiation: 1,
   },
   upgrades3: {
     unlocked: false,
+    storage: 0,
+    strawbCountPerPick: 0,
+    woodCountPerChop: 0,
+    autoStrawbPicker: false,
+    shelter: 0,
   },
 })
 
@@ -44,9 +49,14 @@ export function getResource(resource: Resource): number {
 export function maxResource(resource: Resource): number {
   switch (resource) {
     case Resource.STRAWBERRY:
-      return 10 + player.upgrades1.strawbStorage * 10 + player.upgrades2.strawbStorage * 25
+      return (
+        10 +
+        player.upgrades1.strawbStorage * 10 +
+        player.upgrades2.strawbStorage * 25 +
+        player.upgrades3.storage * 60
+      )
     case Resource.WOOD:
-      return 10
+      return 10 + player.upgrades3.storage * 10
     case Resource.STONE:
       return 10
   }
