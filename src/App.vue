@@ -9,6 +9,7 @@ import Upgrade_Button from './Upgrade_Button.vue'
 const upgrades1Dialog = useTemplateRef('upgrades1Dialog')
 const upgrades2Dialog = useTemplateRef('upgrades2Dialog')
 const upgrades3Dialog = useTemplateRef('upgrades3Dialog')
+const upgrades4Dialog = useTemplateRef('upgrades4Dialog')
 
 const canPick = computed(() => {
   return player.strawberries < maxResource(Resource.STRAWBERRY)
@@ -265,7 +266,7 @@ function chop() {
         :maxUpgrades="undefined"
         :buttonTitle="`Gather wood (+${woodPerChop} ${Resource.WOOD})`"
         buttonSubtext="Chop some nearby brushwood to gather fine, dry wood! Requires some energy."
-        :intervalSecs="3"
+        :intervalSecs="2"
         :onStart="undefined"
         :performUpgrade="chop"
       />
@@ -273,7 +274,7 @@ function chop() {
         :showCondition="player.upgrades3.unlocked"
         :resource="[
           [Resource.STRAWBERRY, 40 + 30 * player.upgrades3.strawbCountPerPick],
-          [Resource.WOOD, 16 + 6 * player.upgrades3.strawbCountPerPick],
+          [Resource.WOOD, 5 + 5 * player.upgrades3.strawbCountPerPick],
         ]"
         :currentUpgrade="player.upgrades3.strawbCountPerPick"
         :maxUpgrades="5"
@@ -290,8 +291,8 @@ function chop() {
       <Upgrade_Button
         :showCondition="player.upgrades3.unlocked"
         :resource="[
-          [Resource.STRAWBERRY, 60 + 40 * player.upgrades3.storage],
-          [Resource.WOOD, 10 + 5 * player.upgrades3.storage],
+          [Resource.STRAWBERRY, 40 + 30 * player.upgrades3.storage],
+          [Resource.WOOD, 4 + 4 * player.upgrades3.storage],
         ]"
         :currentUpgrade="player.upgrades3.storage"
         :maxUpgrades="3"
@@ -308,8 +309,8 @@ function chop() {
       <Upgrade_Button
         :showCondition="player.upgrades3.unlocked"
         :resource="[
-          [Resource.STRAWBERRY, 80 + 40 * player.upgrades3.woodCountPerChop],
-          [Resource.WOOD, 4 + 4 * player.upgrades3.woodCountPerChop],
+          [Resource.STRAWBERRY, 60 + 25 * player.upgrades3.woodCountPerChop],
+          [Resource.WOOD, 3 + 3 * player.upgrades3.woodCountPerChop],
         ]"
         :currentUpgrade="player.upgrades3.woodCountPerChop"
         :maxUpgrades="5"
@@ -327,7 +328,7 @@ function chop() {
         :showCondition="player.upgrades3.unlocked"
         :resource="[
           [Resource.STRAWBERRY, 260],
-          [Resource.WOOD, 40],
+          [Resource.WOOD, 30],
         ]"
         :currentUpgrade="player.upgrades3.autoStrawbPicker ? 1 : 0"
         :maxUpgrades="1"
@@ -349,13 +350,35 @@ function chop() {
           [Resource.WOOD, 40],
         ]"
         :currentUpgrade="player.upgrades3.shelter"
-        :maxUpgrades="3"
+        :maxUpgrades="2"
         buttonTitle="Construct Shelter"
         buttonSubtext="Build your shelter to survive the night! It may only be made of sticks and strawberries, but it's better than nothing."
         :intervalSecs="10"
         :onStart="undefined"
-        :performUpgrade="() => {}"
+        :performUpgrade="
+          () => {
+            player.upgrades3.shelter++
+            if (player.upgrades3.shelter >= 2) {
+              upgrades4Dialog?.showModal()
+            }
+          }
+        "
       />
+      <dialog ref="upgrades4Dialog">
+        <p>
+          Wow, you did it! Your shelter stands firm against the chill of the night. And the next
+          night, and the night after. You spend the rest of your fulfilling life living in your
+          makeshift shelter, collecting strawberries and wood until the day you pass away.
+        </p>
+
+        <p>
+          (In all seriousness, this is where the game ends for now. More content may be added in the
+          future!)
+        </p>
+        <form method="dialog">
+          <button>Continue</button>
+        </form>
+      </dialog>
     </div>
   </div>
 </template>

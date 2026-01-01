@@ -23,7 +23,7 @@ const props = defineProps({
   },
 })
 
-const speedupForTesting = 5 // change to speed up for testing
+const speedupForTesting = 1 // change to speed up for testing
 
 const isInProgress = ref(false)
 const lastClicked = ref(0)
